@@ -1,13 +1,11 @@
 import json
+import os
+import time
+import pyautogui
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from typing import List, Literal, Optional, Tuple, Dict
 
 from PIL import Image, ImageGrab
-
-
-def is_border(colour: Tuple[int, int, int]) -> bool:
-    red, green, blue = colour
-    return 77 <= red <= 124 and 77 <= green <= 124 and 38 <= blue <= 61
 
 
 def is_background(colour: Tuple[int, int, int]) -> bool:
@@ -21,21 +19,13 @@ class Bounds:
     bot_right: Tuple[int, int]
 
 
-def find_bounds(image: Image) -> Bounds:
-    top_left: Optional[Tuple[int, int]] = None
-    bot_right: Optional[Tuple[int, int]] = None
-    width, height = image.size
-    for x in range(0, width):
-        for y in range(0, height):
-            if is_border(image.getpixel((x, y))):
-                if top_left is None or (x <= top_left[0] and y <= top_left[1]):
-                    top_left = (x, y)
-                if bot_right is None or (
-                    x >= bot_right[0] and y >= bot_right[1]
-                ):
-                    bot_right = (x, y)
-    assert top_left is not None
-    assert bot_right is not None
+def get_bounds() -> Bounds:
+    print("Position your cursor in the top left corner")
+    time.sleep(5)
+    top_left = pyautogui.mouseinfo.position()
+    print("Position your cursor in the bottom right corner")
+    time.sleep(5)
+    bot_right = pyautogui.mouseinfo.position()
     return Bounds(top_left, bot_right)
 
 
@@ -60,20 +50,51 @@ def find_colours(image: Image, bounds: Bounds, size: int) -> ColourGrid:
     return result
 
 
-size = 5
-output: List[ColourGrid] = []
-while True:
-    print("Change size (1)\nTake screenshot (2)\nQuit (3)")
-    option = int(input())
-    if option == 1:
-        size = int(input("Size: "))
-    elif option == 2:
-        image = ImageGrab.grab()
-        bounds = find_bounds(image)
-        output.append(find_colours(image, bounds, size))
-        image.close()
-    elif option == 3:
-        break
+try:
+    os.mkdir("puzzles")
+except FileExistsError:
+    pass
 
-with open("colours.json", "x") as file:
-    json.dump(output, file)
+collection = input("Collection name: ")
+os.mkdir(f"puzzles/{collection}")
+
+ask_size = (
+    True if input("Ask for size for each puzzle (y/n): ") == "y" else False
+)
+if ask_size:
+    sizes: Dict[int, Bounds] = {}
+    next_button_positions: Dict[int, Tuple[int, int]] = {}
+else:
+    size = int(input("Size: "))
+    bounds = get_bounds()
+    print("Position your cursor on the next button")
+    time.sleep(3)
+    next_button_position = pyautogui.mouseinfo.position()
+
+number_of_puzzles = int(input("Number of puzzles: "))
+
+for i in range(0, number_of_puzzles):
+    with open(f"puzzles/{collection}/{i}.json", "w") as file:
+        image = ImageGrab.grab()
+        if ask_size:
+            size = int(input("Size: "))
+            if size not in sizes.keys():
+                sizes[size] = get_bounds()
+                print("Position your cursor on the next button")
+                time.sleep(3)
+                next_button_positions[size] = pyautogui.mouseinfo.position()
+            colour_grid = find_colours(image, sizes[size], size)
+        else:
+            colour_grid = find_colours(image, bounds, size)
+        json.dump(colour_grid, file)
+        if i < number_of_puzzles - 1:
+            if ask_size:
+                pyautogui.click(
+                    next_button_positions[size][0],
+                    next_button_positions[size][1],
+                )
+            else:
+                pyautogui.click(
+                    next_button_position[0], next_button_position[1]
+                )
+            time.sleep(1.5)
