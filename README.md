@@ -1,4 +1,4 @@
-# Flow_Game
+# Flow Free Game Solver
 ## Artificial Intelligence, 3rd year, FII
 ### @authors: Coteanu Andra, Marele Carina, Mihaes Antonio, Rotariu Cosmin (grupa 3A4)
 
