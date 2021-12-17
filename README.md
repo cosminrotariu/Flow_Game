@@ -1,5 +1,5 @@
 # Flow_Game
-Artificial Intelligence, 3rd year, FII
+## Artificial Intelligence, 3rd year, FII
 
 Un agent care rezolva puzzle-ul Flow.
 - Flow are loc pe o grila 2D cu n linii și m coloane.
