@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Flag, auto
-from typing import List, Tuple, Optional, Union
+from typing import List, Tuple, Optional, Union, Generator
 
 from pysat.formula import IDPool  # type: ignore
 from pysat.solvers import Minisat22  # type: ignore
@@ -60,8 +60,17 @@ class Puzzle:
         self.id_pool = IDPool()
         self.number_of_colours = len(self.endpoints)
 
+    def positions(self) -> Generator[Position, None, None]:
+        for row in range(0, self.grid_size):
+            for column in range(0, self.grid_size):
+                yield Position(row, column)
+
     def solve(self) -> Optional[Solution]:
-        clauses = must_not_flow_outside(self)
+        clauses = (
+            must_not_flow_outside(self)
+            + must_have_a_direction(self)
+            + must_have_a_colour(self)
+        )
         solver = Minisat22()
         for clause in clauses:
             solver.add_clause(clause)
@@ -72,7 +81,6 @@ class Puzzle:
             for variable in solver.get_model()
             if variable > 0
         ]
-        print(solver.get_model())
         solution: List[Tuple[Tile, ...]] = []
         for i in range(0, self.grid_size):
             row: List[Tile] = []
@@ -83,18 +91,38 @@ class Puzzle:
                     if variable.position == Position(i, j)
                 ]
                 flow_direction = next(
-                    variable.flow_direction  # type: ignore
+                    variable.flow_direction
                     for variable in tile_variables
-                    if isinstance(tile_variables, TileFlowDirection)
+                    if isinstance(variable, TileFlowDirection)
                 )
                 colour = next(
-                    variable.colour  # type: ignore
+                    variable.colour
                     for variable in tile_variables
-                    if isinstance(tile_variables, TileColour)
+                    if isinstance(variable, TileColour)
                 )
                 row.append(Tile(flow_direction, colour))
             solution.append(tuple(row))
         return tuple(solution)
+
+
+def must_have_a_direction(puzzle: Puzzle) -> List[Clause]:
+    return [
+        [
+            puzzle.id_pool.id(TileFlowDirection(position, flow_direction))
+            for flow_direction in FlowDirection
+        ]
+        for position in puzzle.positions()
+    ]
+
+
+def must_have_a_colour(puzzle: Puzzle) -> List[Clause]:
+    return [
+        [
+            puzzle.id_pool.id(TileColour(position, colour))
+            for colour in range(0, puzzle.number_of_colours)
+        ]
+        for position in puzzle.positions()
+    ]
 
 
 def must_not_flow_outside(puzzle: Puzzle) -> List[Clause]:
@@ -105,13 +133,7 @@ def must_not_flow_outside(puzzle: Puzzle) -> List[Clause]:
     ) -> None:
         nonlocal clauses
         clauses += [
-            [
-                -puzzle.id_pool.id(
-                    TileFlowDirection(
-                        Position(row=0, column=i), flow_direction
-                    )
-                )
-            ]
+            [-puzzle.id_pool.id(TileFlowDirection(position, flow_direction))]
             for flow_direction in FlowDirection
             if flow_direction & outside
         ]
