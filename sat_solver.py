@@ -71,6 +71,7 @@ class Puzzle:
             must_not_flow_outside(self)
             + must_have_a_direction(self)
             + must_have_a_colour(self)
+            + only_endpoints_flow_one_way(self)
         )
         solver = Minisat22()
         for clause in clauses:
@@ -175,4 +176,41 @@ def must_not_flow_outside(puzzle: Puzzle) -> List[Clause]:
             Position(row=i, column=puzzle.grid_size - 1), FlowDirection.RIGHT
         )
 
+    return clauses
+
+
+def only_endpoints_flow_one_way(puzzle: Puzzle) -> List[Clause]:
+    clauses: List[Clause] = []
+    endpoints: Tuple[Position, ...] = sum(puzzle.endpoints, tuple())
+    for position in puzzle.positions():
+        if position in endpoints:
+            clauses += [
+                [
+                    puzzle.id_pool.id(
+                        TileFlowDirection(position, flow_direction)
+                    )
+                    for flow_direction in (
+                        FlowDirection.UP,
+                        FlowDirection.LEFT,
+                        FlowDirection.DOWN,
+                        FlowDirection.RIGHT,
+                    )
+                ]
+            ]
+        else:
+            clauses += [
+                [
+                    puzzle.id_pool.id(
+                        TileFlowDirection(position, flow_direction)
+                    )
+                    for flow_direction in (
+                        FlowDirection.UP_LEFT,
+                        FlowDirection.UP_DOWN,
+                        FlowDirection.UP_RIGHT,
+                        FlowDirection.LEFT_DOWN,
+                        FlowDirection.LEFT_RIGHT,
+                        FlowDirection.DOWN_RIGHT,
+                    )
+                ]
+            ]
     return clauses
