@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from enum import Flag, auto
 from typing import List, Tuple, Optional, Union, Generator
+from itertools import combinations
 
 from pysat.formula import IDPool  # type: ignore
 from pysat.solvers import Minisat22  # type: ignore
@@ -61,8 +62,8 @@ class Puzzle:
         self.number_of_colours = len(self.endpoints)
 
     def positions(self) -> Generator[Position, None, None]:
-        for row in range(0, self.grid_size):
-            for column in range(0, self.grid_size):
+        for row in range(self.grid_size):
+            for column in range(self.grid_size):
                 yield Position(row, column)
 
     def solve(self) -> Optional[Solution]:
@@ -82,9 +83,9 @@ class Puzzle:
             if variable > 0
         ]
         solution: List[Tuple[Tile, ...]] = []
-        for i in range(0, self.grid_size):
+        for i in range(self.grid_size):
             row: List[Tile] = []
-            for j in range(0, self.grid_size):
+            for j in range(self.grid_size):
                 tile_variables = [
                     variable
                     for variable in true_variables
@@ -119,8 +120,32 @@ def must_have_a_colour(puzzle: Puzzle) -> List[Clause]:
     return [
         [
             puzzle.id_pool.id(TileColour(position, colour))
-            for colour in range(0, puzzle.number_of_colours)
+            for colour in range(puzzle.number_of_colours)
         ]
+        for position in puzzle.positions()
+    ]
+
+
+def must_not_have_two_directions(puzzle: Puzzle) -> List[Clause]:
+    return [
+        [
+            -puzzle.id_pool.id(TileFlowDirection(position, fst_direction)),
+            -puzzle.id_pool.id(TileFlowDirection(position, snd_direction)),
+        ]
+        for fst_direction, snd_direction in combinations(FlowDirection, 2)
+        for position in puzzle.positions()
+    ]
+
+
+def must_not_have_two_colours(puzzle: Puzzle) -> List[Clause]:
+    return [
+        [
+            -puzzle.id_pool.id(TileColour(position, fst_colour)),
+            -puzzle.id_pool.id(TileColour(position, snd_colour)),
+        ]
+        for fst_colour, snd_colour in combinations(
+            range(puzzle.number_of_colours), 2
+        )
         for position in puzzle.positions()
     ]
 
@@ -138,7 +163,7 @@ def must_not_flow_outside(puzzle: Puzzle) -> List[Clause]:
             if flow_direction & outside
         ]
 
-    for i in range(0, puzzle.grid_size):
+    for i in range(puzzle.grid_size):
         tile_must_not_flow_outside(Position(row=0, column=i), FlowDirection.UP)
         tile_must_not_flow_outside(
             Position(row=i, column=0), FlowDirection.LEFT
