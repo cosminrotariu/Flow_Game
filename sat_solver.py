@@ -71,11 +71,13 @@ class Puzzle:
             must_not_flow_outside(self)
             + must_have_a_direction(self)
             + must_have_a_colour(self)
+            + must_not_have_two_directions(self)
+            + must_not_have_two_colours(self)
             + only_endpoints_flow_one_way(self)
+            + endpoints_must_have_their_initial_colour(self)
+            + tiles_flowing_into_each_other_match(self)
         )
-        solver = Minisat22()
-        for clause in clauses:
-            solver.add_clause(clause)
+        solver = Minisat22(bootstrap_with=clauses)
         if not solver.solve():
             return None
         true_variables: List[Union[TileFlowDirection, TileColour]] = [
@@ -213,4 +215,106 @@ def only_endpoints_flow_one_way(puzzle: Puzzle) -> List[Clause]:
                     )
                 ]
             ]
+    return clauses
+
+
+def endpoints_must_have_their_initial_colour(puzzle: Puzzle) -> List[Clause]:
+    return [
+        [puzzle.id_pool.id(TileColour(endpoint, colour))]
+        for colour, endpoint_pair in enumerate(puzzle.endpoints)
+        for endpoint in endpoint_pair
+    ]
+
+
+def tiles_flowing_into_each_other_match(puzzle: Puzzle) -> List[Clause]:
+    clauses: List[Clause] = []
+
+    def neighbour_matches(
+        position: Position,
+        match_flow: FlowDirection,
+        neighbour_position: Position,
+        neighbour_match_flow: FlowDirection,
+    ) -> None:
+        nonlocal clauses
+        for flow_direction in FlowDirection:
+            if flow_direction & match_flow:
+                # The position flowing in the specified direction implies that
+                # the neighbour has a matching direction.
+                clauses += [
+                    [
+                        -puzzle.id_pool.id(
+                            TileFlowDirection(position, flow_direction)
+                        )
+                    ]
+                    + [
+                        puzzle.id_pool.id(
+                            TileFlowDirection(
+                                neighbour_position,
+                                neighbour_flow_direction,
+                            )
+                        )
+                        for neighbour_flow_direction in FlowDirection
+                        if neighbour_flow_direction & neighbour_match_flow
+                    ]
+                ]
+                # The position flowing in the specified direction implies that
+                # the colour of the current position determines the colour of
+                # the neighbour.
+                clauses += [
+                    [
+                        -puzzle.id_pool.id(
+                            TileFlowDirection(
+                                position,
+                                flow_direction,
+                            )
+                        ),
+                        -puzzle.id_pool.id(
+                            TileColour(
+                                position,
+                                colour,
+                            )
+                        ),
+                        puzzle.id_pool.id(
+                            TileColour(
+                                neighbour_position,
+                                colour,
+                            )
+                        ),
+                    ]
+                    for colour in range(puzzle.number_of_colours)
+                ]
+
+    for position in puzzle.positions():
+        if position.row > 0:
+            neighbour_position = Position(position.row - 1, position.column)
+            neighbour_matches(
+                position,
+                FlowDirection.UP,
+                neighbour_position,
+                FlowDirection.DOWN,
+            )
+        if position.column > 0:
+            neighbour_position = Position(position.row, position.column - 1)
+            neighbour_matches(
+                position,
+                FlowDirection.LEFT,
+                neighbour_position,
+                FlowDirection.RIGHT,
+            )
+        if position.row < puzzle.grid_size - 1:
+            neighbour_position = Position(position.row + 1, position.column)
+            neighbour_matches(
+                position,
+                FlowDirection.DOWN,
+                neighbour_position,
+                FlowDirection.UP,
+            )
+        if position.column < puzzle.grid_size - 1:
+            neighbour_position = Position(position.row, position.column + 1)
+            neighbour_matches(
+                position,
+                FlowDirection.RIGHT,
+                neighbour_position,
+                FlowDirection.LEFT,
+            )
     return clauses
