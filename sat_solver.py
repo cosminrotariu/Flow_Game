@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Flag, auto
-from typing import List, Tuple, Optional, Union, Generator, Dict
+from typing import List, Tuple, Optional, Union, Generator
 from itertools import combinations
 import colorama
 import json
@@ -130,34 +130,40 @@ class Puzzle:
             + tiles_flowing_into_each_other_match(self)
         )
         solver = Minisat22(bootstrap_with=clauses)
-        if not solver.solve():
-            return None
-        true_variables: List[Union[TileFlowDirection, TileColour]] = [
-            self.id_pool.obj(variable)
-            for variable in solver.get_model()
-            if variable > 0
-        ]
-        solution: List[Tuple[Tile, ...]] = []
-        for i in range(self.grid_size):
-            row: List[Tile] = []
-            for j in range(self.grid_size):
-                tile_variables = [
-                    variable
-                    for variable in true_variables
-                    if variable.position == Position(i, j)
-                ]
-                flow_direction = next(
-                    variable.flow_direction
-                    for variable in tile_variables
-                    if isinstance(variable, TileFlowDirection)
-                )
-                colour = next(
-                    variable.colour
-                    for variable in tile_variables
-                    if isinstance(variable, TileColour)
-                )
-                row.append(Tile(flow_direction, colour))
-            solution.append(tuple(row))
+        while True:
+            if not solver.solve():
+                return None
+            true_variables: List[Union[TileFlowDirection, TileColour]] = [
+                self.id_pool.obj(variable)
+                for variable in solver.get_model()
+                if variable > 0
+            ]
+            solution: List[Tuple[Tile, ...]] = []
+            for i in range(self.grid_size):
+                row: List[Tile] = []
+                for j in range(self.grid_size):
+                    tile_variables = [
+                        variable
+                        for variable in true_variables
+                        if variable.position == Position(i, j)
+                    ]
+                    flow_direction = next(
+                        variable.flow_direction
+                        for variable in tile_variables
+                        if isinstance(variable, TileFlowDirection)
+                    )
+                    colour = next(
+                        variable.colour
+                        for variable in tile_variables
+                        if isinstance(variable, TileColour)
+                    )
+                    row.append(Tile(flow_direction, colour))
+                solution.append(tuple(row))
+            cycles = find_cycles(puzzle, solution)
+            if len(cycles) == 0:
+                break
+            for clause in cycles:
+                solver.add_clause(clause)
         return tuple(solution)
 
     def print(self) -> None:
@@ -384,6 +390,56 @@ def tiles_flowing_into_each_other_match(puzzle: Puzzle) -> List[Clause]:
                 FlowDirection.LEFT,
             )
     return clauses
+
+
+def find_cycles(puzzle: Puzzle, solution: Solution) -> List[Clause]:
+    def component(
+        position: Position, visited_previously: List[Position] = []
+    ) -> List[Position]:
+        if any(map(lambda previous: previous == position, visited_previously)):
+            return visited_previously
+        flow_direction = solution[position.row][position.column].flow_direction
+        visited = visited_previously + [position]
+        next_position: Optional[Position] = None
+        for direction, potential_next_position in (
+            (FlowDirection.UP, Position(position.row - 1, position.column)),
+            (FlowDirection.LEFT, Position(position.row, position.column - 1)),
+            (FlowDirection.DOWN, Position(position.row + 1, position.column)),
+            (FlowDirection.RIGHT, Position(position.row, position.column + 1)),
+        ):
+            if (
+                flow_direction & direction
+                and potential_next_position not in visited
+            ):
+                next_position = potential_next_position
+                break
+        return (
+            visited + component(next_position, visited)
+            if next_position is not None
+            else visited
+        )
+
+    visited: List[Position] = []
+    for start, _ in puzzle.endpoints:
+        visited.extend(component(start))
+    cycles: List[List[TileFlowDirection]] = []
+    for row in range(puzzle.grid_size):
+        for column in range(puzzle.grid_size):
+            position = Position(row, column)
+            if position in visited:
+                continue
+            cycle = component(position)
+            visited.extend(cycle)
+            cycles.append(
+                [
+                    TileFlowDirection(
+                        position,
+                        solution[position.row][position.column].flow_direction,
+                    )
+                    for position in cycle
+                ]
+            )
+    return [[-puzzle.id_pool.id(tile) for tile in cycle] for cycle in cycles]
 
 
 if __name__ == "__main__":
