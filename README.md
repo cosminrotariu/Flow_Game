@@ -32,7 +32,11 @@ Pentru a se genera puzzle-urile s-a creat un script folosind limbajul python "sc
 
 ----------------------------------------------------------------
 
-Dupa mai mult research si analiza in mediul online a acestui tip de puzzle am ajuns la concluzia ca 2 posibili algoritmi de rezolvare care ar fi foarte eficienti sunt reducerea problemei la SAT si folosirea unei euristici cu A*.
+Dupa mai mult research si analiza in mediul online a acestui tip de puzzle am ajuns la concluzia ca 2 posibili algoritmi de rezolvare care ar fi foarte eficienti sunt reducerea problemei la SAT si folosirea unei euristici cu A*. 
+
+Euristici aplicabile pot fi folosind algoritmul lui Djikstra, BFS, DFS, etc. 
+
+Un alt algoritm care ar putea rezolva acest tip de problema este backtracking, dar pentru ca el genereaza si incearca toate posibilitatile pana o gaseste pe cea corecta putem deduce ca nu este eficient ca timp.
 
 ----------------------------------------------------------------
 
