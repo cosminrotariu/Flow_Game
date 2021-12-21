@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from enum import Flag, auto
 from typing import List, Tuple, Optional, Union, Generator
 from itertools import combinations
-import colorama
+import colorama  # type: ignore
 import json
 
 from pysat.formula import IDPool  # type: ignore
@@ -13,7 +13,7 @@ def colour_to_escape_sequence(colour: int) -> str:
     if colour < 8:
         return "\033[" + str(30 + colour) + "m"
     else:
-        return "\033[" + str(40 + colour) + "m"
+        return colorama.Fore.WHITE + "\033[" + str(40 + (colour - 8)) + "m"
 
 
 @dataclass(frozen=True)
@@ -37,17 +37,27 @@ class FlowDirection(Flag):
     DOWN_RIGHT = DOWN | RIGHT
 
     def __str__(self) -> str:
-        match self:
-            case FlowDirection.UP: return "╹"
-            case FlowDirection.LEFT: return "╸"
-            case FlowDirection.DOWN: return "╻"
-            case FlowDirection.RIGHT: return "╺"
-            case FlowDirection.UP_LEFT: return "┛"
-            case FlowDirection.UP_DOWN: return "┃"
-            case FlowDirection.UP_RIGHT: return "┗"
-            case FlowDirection.LEFT_DOWN: return "┓"
-            case FlowDirection.LEFT_RIGHT: return "━"
-            case FlowDirection.DOWN_RIGHT: return "┏"
+        return (
+            "╹"
+            if self == FlowDirection.UP
+            else "╸"
+            if self == FlowDirection.LEFT
+            else "╻"
+            if self == FlowDirection.DOWN
+            else "╺"
+            if self == FlowDirection.RIGHT
+            else "┛"
+            if self == FlowDirection.UP_LEFT
+            else "┃"
+            if self == FlowDirection.UP_DOWN
+            else "┗"
+            if self == FlowDirection.UP_RIGHT
+            else "┓"
+            if self == FlowDirection.LEFT_DOWN
+            else "━"
+            if self == FlowDirection.LEFT_RIGHT
+            else "┏"
+        )
 
 
 @dataclass(frozen=True)
@@ -75,7 +85,10 @@ def print_solution(solution: Solution) -> None:
     for row in solution:
         for tile in row:
             print(
-                f"{colour_to_escape_sequence(tile.colour)}{tile.flow_direction}",
+                colour_to_escape_sequence(tile.colour),
+                tile.flow_direction,
+                colorama.Style.RESET_ALL,
+                sep="",
                 end="",
             )
         print()
@@ -104,18 +117,18 @@ class Puzzle:
         with open(file_name) as file:
             puzzle = json.load(file)
         grid_size = len(puzzle)
-        colours = []
-        endpoints = []
+        colours: List[int] = []
+        endpoints: List[Tuple[Position, Position]] = []
         for row, tiles in enumerate(puzzle):
             for column, tile in enumerate(tiles):
                 if tile is not None:
+                    position = Position(row, column)
                     if tile in colours:
-                        endpoints[colours.index(tile)] += (
-                            Position(row, column),
-                        )
+                        index = colours.index(tile)
+                        endpoints[index] = (endpoints[index][0], position)
                     else:
                         colours.append(tile)
-                        endpoints.append((Position(row, column),))
+                        endpoints.append((position, position))
         return Puzzle(grid_size, tuple(endpoints))
 
     def solve(self) -> Optional[Solution]:
@@ -159,7 +172,7 @@ class Puzzle:
                     )
                     row.append(Tile(flow_direction, colour))
                 solution.append(tuple(row))
-            cycles = find_cycles(puzzle, solution)
+            cycles = find_cycles(puzzle, tuple(solution))
             if len(cycles) == 0:
                 break
             for clause in cycles:
@@ -172,7 +185,10 @@ class Puzzle:
                 for colour, endpoint_pair in enumerate(self.endpoints):
                     if Position(row, column) in endpoint_pair:
                         print(
-                            f"{colour_to_escape_sequence(colour)}●{colorama.Style.RESET_ALL}",
+                            colour_to_escape_sequence(colour),
+                            "●",
+                            colorama.Style.RESET_ALL,
+                            sep="",
                             end="",
                         )
                         break
