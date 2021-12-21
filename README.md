@@ -17,3 +17,30 @@ Un agent care rezolva puzzle-ul Flow.
 https://www.microsoft.com/de-de/p/flow-free/9wzdncrdqvpj
 
 ----------------------------------------------------------------
+
+## Generare de puzzle-uri
+### @author: Antonio M.
+
+Pentru a se genera puzzle-urile s-a creat un script folosind limbajul python "screen_scan.py" care:
+- va crea folderul "puzzles" daca acesta nu exista deja, daca exista va ignora acest pas si va continua sa adauge fisiere de tip json in el
+- utilizatorul va trebui apoi sa introduca numele pachetului din care fac parte puzzle-urile pe care vrea sa le salveze
+- utlizatorul acestui scrip va fi intrebat ce dimensiune au acest tip de puzzle pe care vrea sa le converteasca in json
+- utilizatorul va trebui apoi sa pozitioneze cursorul peste butonul "next" (pentru a putea fi salvate coordonatele acestuia)
+- utilizatorul va introduce cate puzzle-uri vrea sa obtina
+- pentru fiecare puzzle se va crea un nou fisier json in care se vor pune culorile pentru fiecare "casuta" din puzzle
+- daca inca nu s-a atins numarul cerut de puzzle-uri atunci se va da click automat pe butonul de next folosind coordonatele
+
+----------------------------------------------------------------
+
+Dupa mai mult research si analiza in mediul online a acestui tip de puzzle am ajuns la concluzia ca 2 posibili algoritmi de rezolvare care ar fi foarte eficienti sunt reducerea problemei la SAT si folosirea unei euristici cu A*.
+
+----------------------------------------------------------------
+
+## Reducere la SAT
+### @author: Antonio M. , Andra C.
+
+----------------------------------------------------------------
+
+## A*
+### @author: Carina M. , Cosmin R.
+
