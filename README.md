@@ -1,4 +1,4 @@
-# Flow Free Game Solver
+# Documentatie[^1] - Flow Free Game Solver 
 ## Artificial Intelligence, 3rd year, FII
 ### @authors: Coteanu Andra, Marele Carina, Mihaes Antonio, Rotariu Cosmin (grupa 3A4)
 
@@ -18,7 +18,7 @@ https://www.microsoft.com/de-de/p/flow-free/9wzdncrdqvpj
 
 ----------------------------------------------------------------
 
-## Generare de puzzle-uri
+## Generare de puzzle-uri[^2]
 ### @author: Antonio M.
 
 Pentru a se genera puzzle-urile s-a creat un script folosind limbajul python "screen_scan.py" care:
@@ -28,10 +28,10 @@ Pentru a se genera puzzle-urile s-a creat un script folosind limbajul python "sc
 - utilizatorul va trebui apoi sa pozitioneze cursorul peste butonul "next" (pentru a putea fi salvate coordonatele acestuia)
 - utilizatorul va introduce cate puzzle-uri vrea sa obtina
 - pentru fiecare puzzle se va crea un nou fisier json in care se vor pune culorile pentru fiecare "casuta" din puzzle
-- daca inca nu s-a atins numarul cerut de puzzle-uri atunci se va da click automat pe butonul de next folosind coordonatele
+- daca inca nu s-a atins numarul cerut de puzzle-uri atunci se va da click automat pe butonul de next folosind coordonatele[^3]
 
 ----------------------------------------------------------------
-## Caracteristicile jocului Flow Free
+## Caracteristicile jocului Flow Free[^4]
 
 Flow Free este un joc bazat in jurul rezolvarii unui puzzle: arata ca o matrice cu dimensiuni de n x n pe care se afla mai multe perechi de cate 2 puncte colorate. Scopul jocului si al acestui proiect este rezolvarea unor astfel de puzzle-uri astfel incat:
 - toate punctele de aceeasi culoare sa fie unite de un singur drum neintrerupt de alte drumuri
@@ -49,7 +49,7 @@ Un alt algoritm care ar putea rezolva acest tip de problema este backtracking, d
 
 ----------------------------------------------------------------
 
-## Reducere la SAT
+## Reducere la SAT[^5]
 ### @author: Antonio M. , Andra C.
 
 Problema SAT este problema de a determina daca exista macar o formula din logica booleana care poate fi interpretata astfel incat cel putin odata aceasta sa rezulte TRUE.
@@ -64,7 +64,15 @@ Pentru a putea demonstra ca acest tip de puzzle poate fi rezolvat cu SAT, mai in
 
 - puzzle-ul este de dimensiunea **n x n** => vom avea ![equation](http://www.sciweavers.org/tex2img.php?eq=%20n%5E%7B2%7D%20&bc=Black&fc=White&im=jpg&fs=12&ff=arev&edit=0) patratele
 - numarul de culori il vom nota cu **c**
-- 
+- directiile posibile sunt:
+  - sus-jos &emsp; &emsp; &emsp; &emsp; │
+  - jos-sus &emsp; &emsp; &emsp; &emsp; │
+  - stanga-dreapta  &emsp; ─
+  - dreapta-stanga  &emsp; ─
+  - sus-stanga &emsp; &emsp; &nbsp;&nbsp; ┘
+  - sus-dreapta &emsp; &emsp; └
+  - jos-stanga &emsp; &emsp; &nbsp;&nbsp;&nbsp; ┐
+  - jos-dreapta &emsp; &emsp;&nbsp; ┌
 
 1. Fiecare patratel are o culoare a sa
 - a
@@ -121,3 +129,15 @@ Este clar ca cei doi algoritmi abordeaza diferit acest subiect, deci se vor obti
 #### 2. Dimensiunea si nivelul de dificultate al codului
 
 ----------------------------------------------------------------
+
+##### Resurse si alte link-uri utile:
+
+[^1]: [sintaxa fisierelor .md](https://docs.github.com/en/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax) and many more stack**overflow** pages
+
+[^2]: [code](https://github.com/cosminrotariu/Flow_Game/blob/main/screen_scan.py)
+
+[^3]: [PyAutoGUI](https://pyautogui.readthedocs.io/en/latest/)
+
+[^4]: [FlowFree](https://en.wikipedia.org/wiki/Flow_Free)
+
+[^5]: [code](https://github.com/cosminrotariu/Flow_Game/blob/main/sat_solver.py)
