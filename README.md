@@ -81,9 +81,15 @@ Pentru a face aceasta reducere vom avea nevoie de FNC pentru ca vom lua fiecare 
 
 Aceste constrangeri ne ofera cel mai scurt si rapid drum pe care il poate gasi ceea ce poate duce la patratele libere ramase care vor fi umplute cu drumuri. Din experienta obtinuta prin rezolvatul manual al astfel de puzzle-uri am observat ca atunci cand se intampla sa fie extra patratele acestea vor avea un numar par atat pe orizontala cat si pe verticala deoarece trebuie sa ofere posibilitatea de a crea drumuri prin ele. Pentru ca vom avea un numar par de patratee libere vecine si pe orizontala si pe verticala inseamna ca algoritmul acesta ba produce niste cicluri care nu contin buline de start/stop.
 
+![image](https://user-images.githubusercontent.com/72747266/147171137-65b30bb2-2473-4bc2-a3cb-ec9233a07404.png)
+
 Pentru a evita aceste scenarii se mai poate adauga o verificare la solutia finala unde cautam daca exista drumuri astfel incat sa se formeze un ciclu. Exemplu: dreapta-jos, stanga-jos, stanga-sus, dreapta sus: 
+
 ┌  ┐  
 └  ┘
+
+![image](https://user-images.githubusercontent.com/72747266/147171167-66d05ad3-11b7-4aed-bba7-c2671b0eaf21.png)
+
 
 ### Implementare
 
