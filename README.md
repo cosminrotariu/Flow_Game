@@ -62,7 +62,7 @@ Pentru a face aceasta reducere vom avea nevoie de FNC pentru ca vom lua fiecare 
 
 Pentru a putea demonstra ca acest tip de puzzle poate fi rezolvat cu SAT, mai intai vom face cateva notatii:
 
-- puzzle-ul este de dimensiunea **n x n** => vom avea ![equation](http://www.sciweavers.org/tex2img.php?eq=%20n%5E%7B2%7D%20&bc=Transparent&fc=White&im=jpg&fs=12&ff=arev&edit=0) patratele
+- puzzle-ul este de dimensiunea **n x n** => vom avea ![equation](http://www.sciweavers.org/tex2img.php?eq=%20n%5E%7B2%7D%20&bc=Black&fc=White&im=jpg&fs=12&ff=arev&edit=0) patratele
 - numarul de culori il vom nota cu **c**
 - 
 
