@@ -150,16 +150,18 @@ Problema SAT are in general, in cel mai rau scenariu, un numar exponential de va
 
 Pentru realizarea acestui solver am folosit Python 3.10 alaturi de alte cateva module.
 
+Mai multe specificatii pentru aceste module se poate gasi in fisierul .txt[^7].
+
 #### Librarii / Module folosite
 
-- dataclasses[^7]
-- enum[^8]
-- typing[^9]
-- itertools[^10]
-- colorama[^11]
-- json[^12]
-- pysat.formula[^13]
-- pysat.solvers[^14]
+- dataclasses[^8]
+- enum[^9]
+- typing[^10]
+- itertools[^11]
+- colorama[^12]
+- json[^13]
+- pysat.formula[^14]
+- pysat.solvers[^15]
 
 #### Clase create
 
@@ -285,7 +287,7 @@ Pentru realizarea acestui solver am folosit Python 3.10 alaturi de alte cateva m
 
 Flow-ul acestui solver este:
 
-- accesam fisierul puzzle-uri[^15]
+- accesam fisierul puzzle-uri[^16]
 - alegem ce puzzle vrem sa rezolvam (categoria si numarul puzzle-ului din acea categorie)
 - afisam puzzle-ul ales, care trebuie rezolvat
 - rezolvam puzzle-ul folosind metodele si clasele create de noi
@@ -330,20 +332,22 @@ Este clar ca cei doi algoritmi abordeaza diferit acest subiect, deci se vor obti
 
 [^6]: [SAT](https://en.wikipedia.org/wiki/Boolean_satisfiability_problem)
 
-[^7]: [dataclasses](https://docs.python.org/3/library/dataclasses.html)
+[^7]: [requirements.txt](https://github.com/cosminrotariu/Flow_Game/blob/main/requirements.txt)
 
-[^8]: [enum](https://docs.python.org/3/library/enum.html)
+[^8]: [dataclasses](https://docs.python.org/3/library/dataclasses.html)
 
-[^9]: [typing](https://docs.python.org/3/library/typing.html)
+[^9]: [enum](https://docs.python.org/3/library/enum.html)
 
-[^10]: [itertools](https://docs.python.org/3/library/itertools.html)
+[^10]: [typing](https://docs.python.org/3/library/typing.html)
 
-[^11]: [colorama](https://pypi.org/project/colorama/)
+[^11]: [itertools](https://docs.python.org/3/library/itertools.html)
 
-[^12]: [json](https://docs.python.org/3/library/json.html)
+[^12]: [colorama](https://pypi.org/project/colorama/)
 
-[^13]: [pysat.formula](https://github.com/pysathq/pysat/blob/master/pysat/formula.py)
+[^13]: [json](https://docs.python.org/3/library/json.html)
 
-[^14]: [pysat.solvers](https://github.com/pysathq/pysat/blob/master/pysat/solvers.py)
+[^14]: [pysat.formula](https://github.com/pysathq/pysat/blob/master/pysat/formula.py)
 
-[^15]: [folder puzzle](https://github.com/cosminrotariu/Flow_Game/tree/main/puzzles)
+[^15]: [pysat.solvers](https://github.com/pysathq/pysat/blob/master/pysat/solvers.py)
+
+[^16]: [folder puzzle](https://github.com/cosminrotariu/Flow_Game/tree/main/puzzles)
