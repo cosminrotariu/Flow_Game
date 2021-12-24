@@ -73,6 +73,7 @@ Pentru a putea demonstra ca acest tip de puzzle poate fi rezolvat cu SAT, mai in
   - sus-dreapta &emsp; &emsp; └
   - jos-stanga &emsp; &emsp; &nbsp;&nbsp;&nbsp; ┐
   - jos-dreapta &emsp; &emsp;&nbsp; ┌
+- observam castanga-dreapta si dreapta-stanga, dar si sus-jos si jos-sus sunt reprezentate identic, deci putem spune ca avem 6 directii, in loc de 8
 
 #### 1. Fiecare patratel are o culoare a sa
 - avem `n*n*c` posibilitati de colorare
@@ -100,7 +101,7 @@ Pentru a putea demonstra ca acest tip de puzzle poate fi rezolvat cu SAT, mai in
 #### 4. Directia drumurilor in casutele care nu sunt buline de start/stop sunt in numar de 8: sus, jos, stanga, dreapta, sus-stanga, sus-dreapta, jos-stanga, jos-dreapta
 - fiecare patratel care nu contine o bulina de start/stop va contine, in rezolvarea finala, va avea o singura directie care va indica cu care dintre vecinii sai formeaza un drum
   - faptul ca acest tip de patratel va contine macar o directie poate fi scris ca o clauza pentru fiecare astfel de patratel
-  - faptul ca acest tip de patratel nu poate contine mai mult de o singura directie poate fi scris ca `2*nr_directii = 2*8 = 16 clauze` pentru fiecare patratel (daca cele 16 clauze sunt indeplinite atunci este indeplinita si clauza de la subpunctul anterior)
+  - faptul ca acest tip de patratel nu poate contine mai mult de o singura directie poate fi scris ca `2*nr_directii = 2*6 = 12 clauze` pentru fiecare patratel (daca cele 16 clauze sunt indeplinite atunci este indeplinita si clauza de la subpunctul anterior)
 - doua astfel de patratele vecine unite prin directiile pe care le contin vor avea aceeasi culoare
 - un astfel de patratel poate avea doar 2 vecini de aceeasi culoare (fie 2 patrate cu directie, fie unul cu directie si unul cu bulina start/stop, fie ambii cu bulina start/stop) 
 - toate directiile de aceeas culoare formeaza un drum; drumul trebuie sa inceapa si sa se termine in patratelele cu bulina de aceeasi culoare
@@ -128,7 +129,7 @@ Pentru a putea demonstra ca acest tip de puzzle poate fi rezolvat cu SAT, mai in
 - pentru un patrat `i` cu directia `d` si culoarea `m`, orice vecin `s` care nu e indicat de directia `d` nu poate avea culoarea `m`: ![image](https://user-images.githubusercontent.com/72747266/147359857-810bd592-ad5f-4dea-8f08-6ec563d0b035.png)
   - formula de mai sus trebuie adusa si ea in FNC si obtinem clauza: ![image](https://user-images.githubusercontent.com/72747266/147359910-df08ba9a-1c7c-49d2-8020-9c929497a76c.png)
 
-Aplicand aceste reguli pe un puzzle cu `n*n` patratele si `c` culori obtinem `n*n*c` variabile pentru culori si aproape `8*n*n` variabile pentru directii (include si patratelele cu buline de start/stop). Vom avea `O(n*n*c*c)` clauze pentru culori si inca `O(n*n*c)` clauze pentru legaturile dintre culori si directii.
+Aplicand aceste reguli pe un puzzle cu `n*n` patratele si `c` culori obtinem `n*n*c` variabile pentru culori si aproape `6*n*n` variabile pentru directii (include si patratelele cu buline de start/stop). Vom avea `O(n*n*c*c)` clauze pentru culori si inca `O(n*n*c)` clauze pentru legaturile dintre culori si directii.
 
 Aceste constrangeri ne ofera cel mai scurt si rapid drum pe care il poate gasi ceea ce poate duce la patratele libere ramase care vor fi umplute cu drumuri. Din experienta obtinuta prin rezolvatul manual al astfel de puzzle-uri am observat ca atunci cand se intampla sa fie extra patratele acestea vor avea un numar par atat pe orizontala cat si pe verticala deoarece trebuie sa ofere posibilitatea de a crea drumuri prin ele. Pentru ca vom avea un numar par de patratee libere vecine si pe orizontala si pe verticala inseamna ca algoritmul acesta ba produce niste cicluri care nu contin buline de start/stop.
 
@@ -145,9 +146,156 @@ Problema SAT are in general, in cel mai rau scenariu, un numar exponential de va
 
 ### Implementare
 
-a = trebuie sa traduc notitele de pe foaie si sa le formulez frumos
-To be continued soon . . .
+#### Limbaj de programare folosit
 
+Pentru realizarea acestui solver am folosit Python 3.10 alaturi de alte cateva module.
+
+#### Librarii / Module folosite
+
+- dataclasses[^7]
+- enum[^8]
+- typing[^9]
+- itertools[^10]
+- colorama[^11]
+- json[^12]
+- pysat.formula[^13]
+- pysat.solvers[^14]
+
+#### Clase create
+
+- `class Position:`
+  - contine 2 variabile de tip int
+  - un obiect al acestei clase semnifica coordonatele unui patratel in puzzle: rand si coloana 
+
+- `class FlowDirection(Flag):`
+  - definim flaguri pentru directiile pe care le vom folosi
+  - metoda `def __str__(self) -> str:` returneaza simbolul aferent fiecarui flag
+
+- `class TileFlowDirection:`
+  - aceasta clasa are 2 variabile: una de tip Position si una de tip FlowDirection
+  - retine pentru fiecare patratel coordonatele si directia pe care o indica
+ 
+- `class TileColour:`
+  - clasa are 2 variabile, una de tip Position si una de tip int
+  - retine pentru fiecare patratel coordonatele si culoarea acestuia
+
+- `class Tile:`
+  - aceasta clasa are 4 variabile: 
+    - una de tip FlowDirection
+    - una de tip int
+    - una de tip IDPool() (pysat.formula)
+    - una de tip int
+  - retine pentru fiecare patratel directia pe care o indica si culoarea sa, dar si id-ul obiectului si numarul total de culori
+
+- `class Puzzle:`
+  - are 2 variabile, una de tip int si una de tip Tuple[Tuple[Position, Position], ...]
+  - metode:
+    - `def __post_init__(self):`
+      - initializeaza pentru fiecare obiect un ID si memoreaza numarul total de culori accesibile
+    - `def positions(self) -> Generator[Position, None, None]:`
+      - parcurge intregul puzzle ca pe o matrice
+      - "returneaza" generatori ce contin pozitia curenta iterata
+    - `def from_file(file_name: str) -> "Puzzle":`
+      - se primeste fisierul `.json` 
+      - se parcurge fisierul si se va crea o lista de tuple ce va retine pozitia de start si de stop a unei culori
+      - se apeleaza constructorul acestei clase si se initializeaza dimensiunea puzzle-ului si tuplele de pozitii de start/stop pentru fiecare culoare
+    - `def solve(self) -> Optional[Solution]:`
+      - apelam `Minisat22` folosindu-ne de clauzele necesare pentru rezolvarea acestui tip de puzzle
+      - daca nu se poate rezolva, functia va returna `None`
+      - daca se poate rezolva, atunci se vor pastra intr-o lista variabilele adevarate
+      - se parcurge puzzle-ul ca o matrice
+      - daca pozitia curenta la care am ajuns prin parcurgere se afla in lista de variabile adevarate, atunci este adaugata la o lista de patratele 
+      - parcurgem lista de patratele si adaugam intr-o noua lista (lista de directii) urmatorul element de dupa fiecare element din lista pe care o parcurgem care este de tipul `TileFlowDirection`
+      - la fel procedam si pentru culori (lista de culori)
+      - adaugam la randul curent patratelul format din lista de directii si cea de culori
+      - adaugam la solutie randul curent
+      - dupa ce terminam de parcurs puzzle-ul si obtinem cat de cat o solutie verificam daca s-a format vreun ciclu
+      - daca s-a format vreun ciclu atunci la mai adaugam o clauza si reluam rezolvarea 
+      - daca nu s-a format niciun ciclu atunci putem returna solutia
+    - `def print(self) -> None:`
+      - se parcurge puzzle-ul si in functie de listele de buline de start/stop si de culori se printeaza ce am obtinut (rezolvarea, daca aceasta exista) 
+
+#### Functii / Metode create
+
+- `def colour_to_escape_sequence(colour: int) -> str:`
+  - primeste un numar ca parametru, il transforma in si returneaza codul unei culori
+ 
+- `def print_solution(solution: Solution) -> None:`
+  - preia solutia ca parametru si o afiseaza utilizatorului folosind culori si simboluri pentru directia drumurilor
+ 
+- clauze:
+  - `def must_have_a_direction(puzzle: Puzzle) -> List[Clause]:`
+    - se parcurg toate pozitiile si pentru fiecare se verifica daca au o directie
+    - daca au directie se va adauga id-ul lor in lista de clauze
+ 
+  - `def must_have_a_colour(puzzle: Puzzle) -> List[Clause]:`
+    - se parcurg toate pozitiile si pentru fiecare se verifica daca au o culoare
+    - daca au o culoare se va adauga id-ul lor in lista de clauze
+ 
+  - `def must_not_have_two_directions(puzzle: Puzzle) -> List[Clause]:`
+    - se parcurg toate pozitiile si se mai parcurg si combinari luate cate 2 de directii
+    - se adauga in lista de clauze id-ul directiei de la pozitie cu prima pozitie si apoi id-ul directiei de la pozitie cu a doua directie din combinare
+ 
+  - `def must_not_have_two_colours(puzzle: Puzzle) -> List[Clause]:`
+    - se parcurg toate pozitiile si se mai parcurg si combinari luate cate 2 de culori
+    - se adauga in lista de clauze id-ul culorilor patratelelor de la pozitia curenta cu prima culaore si apoi cu a doua culoare
+ 
+  - `def must_not_flow_outside(puzzle: Puzzle) -> List[Clause]:`
+    - `def tile_must_not_flow_outside(position: Position, outside: FlowDirection) -> None:` - adauga intr-o lista locala de clauze toate id-urile pentru care directia indica exteriorul puzzle-ului
+    - se parcurge puzzle-ul si pentru fiecare element se verifica daca iese din puzzle fie prin nord, sud, est sau vest cu functia definita anterior (care va adauga clauzele necesare in lista)
+    - se vor returna clauzele
+ 
+  - `def only_endpoints_flow_one_way(puzzle: Puzzle) -> List[Clause]:`
+    - se parcurg positiile din puzzle
+    - daca pozitia este una a unei buline de start/stop se verifica daca directia ei este sus, jos, stanga sau dreapta
+    - daca da se adauga id-ul in lista de clauze
+    - daca pozitia nu este de start/stop atunci se verifica daca directia este sus-jos, stanga-dreapta, sus-stanga, sus-dreapta, jos-stanga sau jos-dreapta
+    - daca da se adauga id-ul in lista de clauze
+ 
+  - `def endpoints_must_have_their_initial_colour(puzzle: Puzzle) -> List[Clause]:`
+    - se parcurge lista de perechi de buline de start/stop si pentru fiecare se ia tuplul de pozitii start si stop si culoare si i se adauga id-ul in lista de clauze
+ 
+  - `def tiles_flowing_into_each_other_match(puzzle: Puzzle) -> List[Clause]:`
+    - se ia o lista locala de clauze 
+    - `def neighbour_matches( position: Position, match_flow: FlowDirection, neighbour_position: Position, neighbour_match_flow: FlowDirection, ) -> None:`
+      - parcurge toate directiile si adauga in lista de clauze id-ul directiei de la pozitia `x` cu directia `d` si id-ul directiei de la pozitia `x+1` (`x+1` este vecinul lui `x`) si cu directia `d'` a acestuia 
+      - scopul este ca cele 2 directii vecine trebuie sa se potriveasca cumva
+      - se parcurg apoi culorile existente in general in puzzle
+      - se adauga la clauze id-ul obiectului format din pozitie si directie, apoi id-ul obiectului format din pozitie si culoare si apoi id-ul obiectului format din pozitia vecinului si culoare
+    - se parcurg pozitiile din puzzle si pentru fiecare pozitie se calculeaza vecinii ei
+    - folosindu-ne de functia `neighbour_matches` descrisa mai sus vom adauga clauzele necesare puzzle-ului nostru in lista de clauze
+ 
+  - `def find_cycles(puzzle: Puzzle, solution: Solution) -> List[Clause]:`
+    - `def component(position: Position, visited_previously: List[Position] = []) -> List[Position]:`
+      - verificam mai intai daca o pozitie a fost deja vizitata
+      - daca da returnam acea pozitie, daca nu continuam:
+      - salvam separat directia, daca a fost vizitat si care este urmatoarea pozitie
+      - pacurgem toate directiile posibile pentru a gasi urmatoarea potentiala directie
+      - daca gasim o pozitie care nu a fost vizitata o salvam ca urmatoarea pozitie si iesim din aceasta iteratie
+      - daca gasim o urmatoare pozitie returnam daca este vizitat si apelam recursiv aceasta functie
+      - daca nu gasim o urmatoare pozitie atunci returnam doar vizitat
+    - parcurgem pozitiile de start/stop ale puzzle-ului si apelam functia anterioara pentru fiecare pozitie de start
+    - parcurgem apoi toate pozitiile din puzzle si verificam daca au fost sau nu vizitate
+    - daca nu a fost vizitata presupunem ca exista un ciclu asa ca apelam din nou functia anterioara de la pozitia nevizitata
+    - adaugam si aceste pozitii in lista de pozitii deja vizitate
+    - la lista de posibile cicluri adaugam pozitia si directia pentru fiecare patratel
+    - functia va returna id-ul pentru fiecare patratel aflat intr-un ciclu pentru a fi adaugat la lista de clauze  
+
+#### Aspecte generale
+
+Flow-ul acestui solver este:
+
+- accesam fisierul puzzle-uri[^15]
+- alegem ce puzzle vrem sa rezolvam (categoria si numarul puzzle-ului din acea categorie)
+- afisam puzzle-ul ales, care trebuie rezolvat
+- rezolvam puzzle-ul folosind metodele si clasele create de noi
+- afisam rezolvarea, daca aceasta exista (daca nu exista afisam un mesaj sugestiv)
+
+#### Eficienta
+
+Algoritmul descris de noi, dupa mai multe teste rulate, am observat ca rezolva toate puzzle-urile din cele accesibile noua in aproximativ 0.05 - 0.5 secunde, in functie de dimensiunea si dificultatea puzzle-ului. Numarul de clauze folosite pentru obtinerea rezolvarilor este de ordinul miilor.
+
+![image](https://user-images.githubusercontent.com/72747266/147373695-d8f6d805-7714-4165-a2bb-b0f4a043417f.png)
 
 ----------------------------------------------------------------
 
@@ -181,3 +329,21 @@ Este clar ca cei doi algoritmi abordeaza diferit acest subiect, deci se vor obti
 [^5]: [code](https://github.com/cosminrotariu/Flow_Game/blob/main/sat_solver.py)
 
 [^6]: [SAT](https://en.wikipedia.org/wiki/Boolean_satisfiability_problem)
+
+[^7]: [dataclasses](https://docs.python.org/3/library/dataclasses.html)
+
+[^8]: [enum](https://docs.python.org/3/library/enum.html)
+
+[^9]: [typing](https://docs.python.org/3/library/typing.html)
+
+[^10]: [itertools](https://docs.python.org/3/library/itertools.html)
+
+[^11]: [colorama](https://pypi.org/project/colorama/)
+
+[^12]: [json](https://docs.python.org/3/library/json.html)
+
+[^13]: [pysat.formula](https://github.com/pysathq/pysat/blob/master/pysat/formula.py)
+
+[^14]: [pysat.solvers](https://github.com/pysathq/pysat/blob/master/pysat/solvers.py)
+
+[^15]: [folder puzzle](https://github.com/cosminrotariu/Flow_Game/tree/main/puzzles)
