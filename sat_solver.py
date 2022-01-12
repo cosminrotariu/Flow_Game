@@ -13,7 +13,7 @@ def colour_to_escape_sequence(colour: int) -> str:
     if colour < 8:
         return "\033[" + str(30 + colour) + "m"
     else:
-        return colorama.Fore.WHITE + "\033[" + str(40 + (colour - 8)) + "m"
+            return colorama.Fore.WHITE + "\033[" + str(40 + (colour - 8)) + "m"
 
 
 @dataclass(frozen=True)
