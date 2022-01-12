@@ -23,9 +23,9 @@ https://www.microsoft.com/de-de/p/flow-free/9wzdncrdqvpj
 
 Pentru a se genera puzzle-urile s-a creat un script folosind limbajul python "screen_scan.py" care:
 - va crea folderul "puzzles" daca acesta nu exista deja, daca exista va ignora acest pas si va continua sa adauge fisiere de tip json in el
-- utilizatorul va trebui apoi sa introduca numele pachetului din care fac parte puzzle-urile pe care vrea sa le salveze
-- utlizatorul acestui scrip va fi intrebat ce dimensiune au acest tip de puzzle pe care vrea sa le converteasca in json
-- utilizatorul va trebui apoi sa pozitioneze cursorul peste butonul "next" (pentru a putea fi salvate coordonatele acestuia)
+- utilizatorul va trebui apoi sa introducă numele pachetului din care fac parte puzzle-urile pe care vrea sa le salveze
+- utilizatorul acestui scrip va fi întrebat ce dimensiune au acest tip de puzzle pe care vrea sa le converteasca in json
+- utilizatorul va trebui apoi sa poziționeze cursorul peste butonul "next" (pentru a putea fi salvate coordonatele acestuia)
 - utilizatorul va introduce cate puzzle-uri vrea sa obtina
 - pentru fiecare puzzle se va crea un nou fisier json in care se vor pune culorile pentru fiecare "casuta" din puzzle
 - daca inca nu s-a atins numarul cerut de puzzle-uri atunci se va da click automat pe butonul de next folosind coordonatele[^3]
@@ -299,22 +299,85 @@ Algoritmul descris de noi, dupa mai multe teste rulate, am observat ca rezolva t
 
 ![image](https://user-images.githubusercontent.com/72747266/147373695-d8f6d805-7714-4165-a2bb-b0f4a043417f.png)
 
+### Implementare
+
+#### Limbaj de programare folosit
+
+Pentru realizarea acestui solver am folosit Python 3.10 alaturi de alte cateva module.
+
+Mai multe specificatii pentru aceste module se poate gasi in fisierul .txt[^7].
+
+#### Librarii / Module folosite
+
+- typing[^10]
+- colorama[^12]
+- json[^13]
+- termcolor[^17]
+
+#### Functii / Metode create
+
+ - `def print_matrix(matrix): -> Matrix`
+   - Printez matricea cu numerele culorilor
+ - `def pretty_print_matrix(matrix): -> Colored Matrix`
+   - Afisam solutia colorata
+ - `def parse_json(file_name1): -> Puzzle Matrix`
+   - Parsam puzzle-urile pentru rezolvarea problemei si construiesc matricea cu care vom lucra
+ - `def identify_nodes(grid1):`
+   - Identifica pozitia nodurilor de start si cele terminale, distantele dintre culorile de acelasi fel
+   - Returnam dictionare cu nodurile initiale, cu nodurile finale, cu nodurile corespunzatoare culorile lor si distanta
+ - `def checkGrid(matrix):`
+   - Functie pentru verificarea validitatii matricii. Daca matricea are un punct(culoare) inconjurata de alte culori,
+    adica nu pot pleca din acel punct( forma de T-uri sau + uri)
+   - Returnam True daca este in regula, pot pleca din fiecare punct din matrice, False altfel
+ - `def solved(matrix):`
+   - Verifica daca toate spatiile goale(0) sunt colorate
+   - Returnam True daca este colorata, False altfel
+ - `def solvePuzzle(matrix):`
+   - Functie recursiva pentru verificarea tuturor posibililor mutarii si sarim peste matricile care nu duc la o solutie.
+   - Verifica initial daca este valida matricea(daca nu are doar culori in jurul ei, daca pot pleca din acel punct),
+     dupa verifica daca este colorata integral matricea, asta insemnand ca am gasit o solutie.
+   - Altfel merge la urmatoarea mutare:
+   - Verifica daca punctele acestei culori sunt conectate, daca nu sunt, atunci verifica in ce directie trebuie sa
+     mearga (stanga, dreapta, sus, jos)
+   - Daca din niciuna dintre directii nu rezulta o solutie va returna False, altfel True
+    
+
 ----------------------------------------------------------------
 
-## A*
+## BACKTRACKING
 ### @author: Carina M. , Cosmin R.
 
+Backtracking este un algoritm general de descoperire a tuturor soluțiilor unei probleme de calcul, algoritm ce se bazează pe construirea incrementală de soluții-candidat, abandonând fiecare candidat parțial imediat ce devine clar că acesta nu are șanse să devină o soluție validă.
+
+Pentru a reduce numarul de pasi (bkt) necesari pentru realizarea algoritmului de backtracking, pe urmatoarea matrice se vor aplica urmatoarele reguli:
+
+<img src="https://static.wikia.nocookie.net/wingsoffirefanon/images/2/21/Flow_free_byeogthc.png/revision/latest?cb=20210201210356" width="250">
+
+
+Incepem rezolvarea puzzle ului prin calcularea distantei TaxiCab intre fiecare pereche de noduri de aceeasi culoare. 
+
+Folosim aceasta informatie pentru a prioritiza nodurile cu o distanta minima. 
+De exemplu, pe matricea de mai sus, algoritmul se va focusa pe albastru si mov inchis fiind culorile conectate cu cele mai mici distante.
+
+Cand verificam distanta intre 2 culori, algoritmul verifica 4 directii( dreapta, stanga, sus, jos). Se prioritizeaza directia care reduce cel mai mult distanta TaxiCab intre posibila pozitie a directiei si pozitia finala a culorii(e.g se deplaseaza la stanga prima data daca pozitia finala a culorii se afla in stanga pozitiei curente, pana unde este traseul trasat)
+
+<img src="https://i.imgur.com/Qzi1Ruv.png" width="350">
 
 ----------------------------------------------------------------
 
 ## Rapoarte finale de analiza. Compararea celor doua implementari
-### @author: Andra C. , 
+### @author: Andra C. , Carina M., Antonio M., Cosmin R. 
 
-Este clar ca cei doi algoritmi abordeaza diferit acest subiect, deci se vor obtine pasi diferiti, deci timpi diferiti de rezolvare. Dar pentru a obtine pasi diferiti si codul va fi diferit, deci si acesta poate fi un criteriu de comparatie intre cele doua implementari.
+Este clar ca cei doi algoritmi abordeaza altfel acest subiect, deci se vor obtine pasi diferiti, deci timpi diversi de rezolvare. Dar pentru a obtine acesti pasi si codul va varia, deci si acesta poate fi un criteriu de comparatie intre cele doua implementari.
 
-#### 1. Eficienta - timp rezolvare
+####  Eficienta - timp rezolvare
 
-#### 2. Dimensiunea si nivelul de dificultate al codului
+ - SAT - `O(exp(n)` ~ [0.5, 4] secunde
+
+ - BKT - `O(n!)` ~ [4,20] secunde pentru 9x9 (pentru table mai mici, timpul de rulare scade, iar pentru cele mai mari de 10x10, va dura mai mult rularea algoritmului)
+
+  Este clar ca SAT este **mult mai eficient** decat un BKT.
+
 
 ----------------------------------------------------------------
 
@@ -351,3 +414,5 @@ Este clar ca cei doi algoritmi abordeaza diferit acest subiect, deci se vor obti
 [^15]: [pysat.solvers](https://github.com/pysathq/pysat/blob/master/pysat/solvers.py)
 
 [^16]: [folder puzzle](https://github.com/cosminrotariu/Flow_Game/tree/main/puzzles)
+
+[^17]: [termcolor](https://pypi.org/project/termcolor/)

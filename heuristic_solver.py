@@ -2,7 +2,7 @@ import json
 from typing import Any, List
 from colorama import init
 from termcolor import colored
-
+import time
 
 def print_matrix(matrix):
     """
@@ -37,7 +37,7 @@ def pretty_print_matrix(matrix):
 
 def parse_json(file_name1):
     """
-    Parsam puzzle-urile pentru rezolvarea problemei
+    Parsam puzzle-urile pentru rezolvarea problemei si construiesc matricea cu care vom lucra
     :param file_name1: numele jsonului
     :return: matricea creata
     """
@@ -104,7 +104,7 @@ def checkGrid(matrix):
     Functie pentru verificarea validitatii matricii. Daca matricea are un punct(culoare) inconjurata de alte culori,
     adica nu pot pleca din acel punct( forma de T-uri sau + uri)
     :param matrix: matricea pe care lucram
-    :return: Adevarat daca este in regula, pot pleca din fiecare punct din matrice, False altfel
+    :return: True daca este in regula, pot pleca din fiecare punct din matrice, False altfel
     """
     global rows, cols
     for r in range(1, rows - 1):
@@ -134,7 +134,7 @@ def solved(matrix):
     """
     Verifica daca toate spatiile goale(0) sunt colorate
     :param matrix: matriceea
-    :return: Adevarat daca este colorata, False altfel
+    :return: True daca este colorata, False altfel
     """
     for row in matrix:
         for cell in row:
@@ -147,14 +147,14 @@ def solvePuzzle(matrix):
     """
     Functie recursiva pentru verificarea tuturor posibililor mutarii si sarim peste matricile care nu duc la o solutie.
     Verifica initial daca este valida matricea(daca nu are doar culori in jurul ei,daca pot pleca din acel punct),
-     upa verifica daca este colorata
+     dupa verifica daca este colorata
     integral matricea, asta insemnand ca am gasit o solutie.
     Altfel merge la urmatoarea mutare:
     -Verifica daca punctele acestei culori sunt conectate, daca nu sunt, atunci verifica in ce directie trebuie sa
      mearga (stanga, dreapta, sus, jos)
     Daca din niciuna dintre directii nu rezulta o solutie va returna False
     :param matrix: matricea
-    :return:True daca am gasit o solutie, False alt
+    :return:True daca am gasit o solutie, False altfel
     """
 
     if not checkGrid(matrix):
@@ -222,14 +222,17 @@ def solvePuzzle(matrix):
         return False
 
 
+
+
 if __name__ == "__main__":
+    start_time = time.time()
     init()
     colors = ['', '', 'grey', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white', 'red', 'grey', 'blue',
               'magenta', 'green', 'white', 'yellow', 'cyan']
     background = ['', '', 'on_grey', 'on_red', 'on_green', 'on_yellow', 'on_blue', 'on_magenta', 'on_cyan', 'on_white',
                   'on_grey', 'on_red', 'on_green', 'on_yellow', 'on_blue', 'on_magenta', 'on_cyan', 'on_white']
 
-    file_name = "puzzles/bonus-9x9/29.json"
+    file_name = "puzzles/bonus-9x9/1.json"
 
     grid = parse_json(file_name)
     rows = len(grid)
@@ -241,3 +244,4 @@ if __name__ == "__main__":
         pretty_print_matrix(grid)
     else:
         print("No solution.")
+    print("Running Time: "+(" %s seconds " % (time.time() - start_time)))
