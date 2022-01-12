@@ -3,6 +3,7 @@ from enum import Flag, auto
 from typing import List, Tuple, Optional, Union, Generator
 from itertools import combinations
 import colorama  # type: ignore
+from time import time
 import json
 
 from pysat.formula import IDPool  # type: ignore
@@ -465,7 +466,9 @@ if __name__ == "__main__":
     print("Puzzle:")
     puzzle.print()
     print("Solution:")
+    start_time = time()
     solution = puzzle.solve()
+    print(f"Finished in {time() - start_time} seconds")
     if solution is None:
         print("No solution")
     else:
