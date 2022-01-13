@@ -232,7 +232,7 @@ if __name__ == "__main__":
     background = ['', '', 'on_grey', 'on_red', 'on_green', 'on_yellow', 'on_blue', 'on_magenta', 'on_cyan', 'on_white',
                   'on_grey', 'on_red', 'on_green', 'on_yellow', 'on_blue', 'on_magenta', 'on_cyan', 'on_white']
 
-    file_name = "puzzles/bonus-9x9/1.json"
+    file_name = input("File name: ")
 
     grid = parse_json(file_name)
     rows = len(grid)

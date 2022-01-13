@@ -49,6 +49,22 @@ Un alt algoritm care ar putea rezolva acest tip de problema este backtracking, d
 
 ----------------------------------------------------------------
 
+## Utilizare
+
+Se pot rula fișierele `sat_solver.py` și `heuristic_solver.py`. Acestea primesc de la utilizator numele unui fișier JSON. Acest fișier va fi o listă de liste unde un element liber este reprezentat prin `null`, iar dacă două elemente au aceeași valoare, atunci ele reprezintă aceeași culoare. Exemplu:
+
+```json
+[
+  [null,  null,    null, null,     null],
+  [null,  "blue",  null, "blue",   "green"],
+  [null,  null,    null, null,     null],
+  ["red", "green", null, "purple", "red"],
+  [null,  null,    null, null,     "purple"]
+]
+```
+
+----------------------------------------------------------------
+
 ## Reducere la SAT[^5]
 ### @author: Antonio M. , Andra C.
 
