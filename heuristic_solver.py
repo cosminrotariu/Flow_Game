@@ -59,7 +59,6 @@ def parse_json(file_name1):
                         grid1[-1].append(len(seen) + 1)
             grid1[-1].append(1)
         grid1.append([1] * (len(contents) + 2))
-    pretty_print_matrix(grid1)
     return grid1
 
 
@@ -85,8 +84,8 @@ def identify_nodes(grid1):
     final_nodes1 = {}
     endpoints1 = []
     distances1 = {}
-    for row in range(1, len(grid) - 1):
-        for column in range(1, len(grid[0]) - 1):
+    for row in range(1, len(grid1) - 1):
+        for column in range(1, len(grid1[0]) - 1):
             color = grid1[row][column]
             if color > 0:
                 if color in init_nodes1:
@@ -106,9 +105,8 @@ def checkGrid(matrix):
     :param matrix: matricea pe care lucram
     :return: True daca este in regula, pot pleca din fiecare punct din matrice, False altfel
     """
-    global rows, cols
-    for r in range(1, rows - 1):
-        for c in range(1, cols - 1):
+    for r in range(1, len(matrix) - 1):
+        for c in range(1, len(matrix) - 1):
             if matrix[r][c] > 0:
                 color = matrix[r][c]
 
@@ -143,7 +141,7 @@ def solved(matrix):
     return True
 
 
-def solvePuzzle(matrix):
+def solvePuzzle(matrix, init_nodes=None, final_nodes=None, endpoints=None, distances=None):
     """
     Functie recursiva pentru verificarea tuturor posibililor mutarii si sarim peste matricile care nu duc la o solutie.
     Verifica initial daca este valida matricea(daca nu are doar culori in jurul ei,daca pot pleca din acel punct),
@@ -156,6 +154,8 @@ def solvePuzzle(matrix):
     :param matrix: matricea
     :return:True daca am gasit o solutie, False altfel
     """
+    if init_nodes is None:
+        init_nodes, final_nodes, endpoints, distances = identify_nodes(matrix)
 
     if not checkGrid(matrix):
         return False
@@ -210,7 +210,7 @@ def solvePuzzle(matrix):
             start_node[0] += row_dir
             start_node[1] += col_dir
             matrix[start_node[0]][start_node[1]] = color
-            if solvePuzzle(matrix):
+            if solvePuzzle(matrix, init_nodes, final_nodes, endpoints, distances):
                 return True
             else:
                 # backtrack...
@@ -235,9 +235,9 @@ if __name__ == "__main__":
     file_name = input("File name: ")
 
     grid = parse_json(file_name)
+    pretty_print_matrix(grid)
     rows = len(grid)
     cols = len(grid[0])
-    init_nodes, final_nodes, endpoints, distances = identify_nodes(grid)
     if solvePuzzle(grid):
         print("Solution: ")
         print_matrix(grid)

@@ -14,7 +14,7 @@ def colour_to_escape_sequence(colour: int) -> str:
     if colour < 8:
         return "\033[" + str(30 + colour) + "m"
     else:
-            return colorama.Fore.WHITE + "\033[" + str(40 + (colour - 8)) + "m"
+        return colorama.Fore.WHITE + "\033[" + str(40 + (colour - 8)) + "m"
 
 
 @dataclass(frozen=True)
@@ -173,7 +173,7 @@ class Puzzle:
                     )
                     row.append(Tile(flow_direction, colour))
                 solution.append(tuple(row))
-            cycles = find_cycles(puzzle, tuple(solution))
+            cycles = find_cycles(self, tuple(solution))
             if len(cycles) == 0:
                 break
             for clause in cycles:
